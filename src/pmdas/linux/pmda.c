@@ -3535,6 +3535,10 @@ static pmdaMetric metrictab[] = {
   { NULL,
     { PMDA_PMID(CLUSTER_SYSFS_DEVICES, 1), PM_TYPE_U32, NODE_INDOM, PM_SEM_INSTANT,
     PMDA_PMUNITS(0,0,0,0,0,0) } },
+/* hinv.mem_bw.max */
+  { NULL,
+    { PMDA_PMID(CLUSTER_SYSFS_DEVICES, 2), PM_TYPE_DOUBLE, NODE_INDOM, PM_SEM_INSTANT,
+    PMDA_PMUNITS(0,0,0,0,0,0) } },
 
 /*
  * semaphore limits cluster
@@ -4638,6 +4642,7 @@ linux_fetchCallBack(pmdaMetric *mdesc, unsigned int inst, pmAtomValue *atom)
     net_addr_t		*addrp;
     net_interface_t	*netip;
     scsi_entry_t	*scsi_entry;
+    int nr_nodes = 0;
 
     if (mdesc->m_user != NULL) {
 	/* 
@@ -5836,6 +5841,14 @@ linux_fetchCallBack(pmdaMetric *mdesc, unsigned int inst, pmAtomValue *atom)
 	    if (inst >= proc_cpuinfo.node_indom->it_numinst)
 		return PM_ERR_INST;
 	    atom->ul = refresh_sysfs_online(inst, "node");
+	    break;
+	case 2: /* hinv.mem_bw.max */
+	    nr_nodes = proc_cpuinfo.node_indom->it_numinst;
+	    if (inst >= proc_cpuinfo.node_indom->it_numinst)
+		return PM_ERR_INST;
+
+	    if (max_bandwidth_per_node(nr_nodes, &(atom->ul)) < 0)
+		return PM_ERR_INST;
 	    break;
 
 	default:

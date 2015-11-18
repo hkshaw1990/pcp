@@ -512,6 +512,7 @@ int perf_get(perfhandle_t *inst, perf_counter **counters, int *size)
     for(idx = 0; idx < pdata->nevents; ++idx)
     {
         event_t *event = &pdata->events[idx];
+	int pfm_ret;
 
         pcounter[idx].name = event->name;
 
@@ -525,7 +526,7 @@ int perf_get(perfhandle_t *inst, perf_counter **counters, int *size)
         for(cpuidx = 0; cpuidx < event->ncpus; ++cpuidx)
         {
             eventcpuinfo_t *info = &event->info[cpuidx];
-
+	    double scale_value = 1.0;
             int ret;
 
             if( info->type == EVENT_TYPE_PERF ) {
@@ -542,7 +543,12 @@ int perf_get(perfhandle_t *inst, perf_counter **counters, int *size)
                     ++events_read;
                 }
 
-                pcounter[idx].data[cpuidx].value += scaled_value_delta(info);
+		pfm_ret = pfm_get_event_scale(pcounter[idx].name, &scale_value);
+		if (pfm_ret < 0)
+		    scale_value = 1.0;
+
+		fprintf(stderr, "scale : %lf\n", scale_value);
+                pcounter[idx].data[cpuidx].value += scaled_value_delta(info)* scale_value;
                 pcounter[idx].data[cpuidx].time_enabled = info->values[TIME_ENABLED];
                 pcounter[idx].data[cpuidx].time_running = info->values[TIME_RUNNING];
                 pcounter[idx].data[cpuidx].id = info->cpu;

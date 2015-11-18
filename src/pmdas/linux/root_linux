@@ -47,6 +47,7 @@ hinv {
     map		
     cpu
     node
+    mem_bw
     hugepagesize	60:1:59
 }
 
@@ -74,6 +75,9 @@ hinv.node {
     online		60:55:1
 }
 
+hinv.mem_bw {
+    max                 60:55:2
+}
 kernel {
     all
     percpu
